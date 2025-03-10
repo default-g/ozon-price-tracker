@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/chromedp/chromedp"
 )
 
@@ -35,7 +36,6 @@ func NewOzonClient() *Client {
 		)...,
 	)
 
-	ctx, _ = context.WithTimeout(ctx, 5*time.Second)
 	ctx, _ = chromedp.NewContext(
 		ctx,
 		chromedp.WithLogf(log.Printf),
