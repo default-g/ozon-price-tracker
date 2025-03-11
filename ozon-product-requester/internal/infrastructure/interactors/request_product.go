@@ -2,7 +2,7 @@ package interactors
 
 import (
 	product "ozon-product-requester/internal/domain/product/entity"
-	ozon_client "ozon-product-requester/internal/ozon_client"
+	ozon_client "ozon-product-requester/internal/infrastructure/ozon_client"
 )
 
 type RequestProductInteractor struct {

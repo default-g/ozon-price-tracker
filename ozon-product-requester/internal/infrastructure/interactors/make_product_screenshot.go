@@ -1,6 +1,6 @@
 package interactors
 
-import ozon_client "ozon-product-requester/internal/ozon_client"
+import ozon_client "ozon-product-requester/internal/infrastructure/ozon_client"
 
 type MakeProductScreenshot struct {
 	ozonClient *ozon_client.Client

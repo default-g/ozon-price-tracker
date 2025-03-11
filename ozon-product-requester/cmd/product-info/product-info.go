@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"ozon-product-requester/internal/infrastructure/interactors"
-	ozon_client "ozon-product-requester/internal/ozon_client"
+	ozon_client "ozon-product-requester/internal/infrastructure/ozon_client"
+
 	"github.com/alexflint/go-arg"
 )
 
@@ -17,10 +18,10 @@ func main() {
 	interactor := interactors.NewRequestProductInteractor(ozonClient)
 	product, err := interactor.Call(args.ID)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	
-	fmt.Println(product)
+	log.Println(product)
 }
 

@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"ozon-product-requester/internal/infrastructure/interactors"
-	ozon_client "ozon-product-requester/internal/ozon_client"
+	ozon_client "ozon-product-requester/internal/infrastructure/ozon_client"
 	"github.com/alexflint/go-arg"
 )
 
