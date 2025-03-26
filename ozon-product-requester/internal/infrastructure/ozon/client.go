@@ -1,11 +1,11 @@
-package ozon_client
+package ozon
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"log"
-	product "ozon-product-requester/internal/domain/product/entity"
+	product "ozon-product-requester/internal/domain/models"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,25 +14,31 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-const USER_AGENT string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
-
-type Client struct {
+type ClientImpl struct {
 	ctx context.Context
 }
 
-func NewOzonClient() *Client {
+func NewClient(
+	disableGpu bool,
+	enableAutomation bool,
+	disableBlinkFeatures string,
+	headless bool,
+	windowWidth int,
+	windowHeight int,
+	userAgent string,
+) *ClientImpl {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 		append(
 			chromedp.DefaultExecAllocatorOptions[:],
 			chromedp.NoDefaultBrowserCheck,
 			chromedp.DisableGPU,
-			chromedp.Flag("disable-gpu", true),
-			chromedp.Flag("enable-automation", true),
-			chromedp.Flag("disable-blink-features", "AutomationControlled"),
-			chromedp.Flag("headless", true),
-			chromedp.WindowSize(1920, 1080),
-			chromedp.UserAgent(USER_AGENT),
+			chromedp.Flag("disable-gpu", disableGpu),
+			chromedp.Flag("enable-automation", enableAutomation),
+			chromedp.Flag("disable-blink-features", disableBlinkFeatures),
+			chromedp.Flag("headless", headless),
+			chromedp.WindowSize(windowWidth, windowHeight),
+			chromedp.UserAgent(userAgent),
 		)...,
 	)
 
@@ -41,12 +47,12 @@ func NewOzonClient() *Client {
 		chromedp.WithLogf(log.Printf),
 	)
 
-	return &Client{
+	return &ClientImpl{
 		ctx: ctx,
 	}
 }
 
-func (c *Client) MakeScreeshot(id string) ([]byte, error) {
+func (c *ClientImpl) MakeScreenshot(id string) ([]byte, error) {
 	var screenshot []byte
 	if err := chromedp.Run(c.ctx, chromedp.Tasks{
 		chromedp.Navigate("https://ozon.ru/product/" + id),
@@ -60,7 +66,7 @@ func (c *Client) MakeScreeshot(id string) ([]byte, error) {
 	return screenshot, nil
 }
 
-func (c *Client) GetProduct(id string) (*product.Product, error) {
+func (c *ClientImpl) GetProduct(id string) (*product.Product, error) {
 	var price string
 	var name string
 	if err := chromedp.Run(c.ctx, chromedp.Tasks{
