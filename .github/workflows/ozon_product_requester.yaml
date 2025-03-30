@@ -1,0 +1,99 @@
+name: Lint and Test
+
+on:
+    push:
+        branches: ['*']
+    pull_request:
+
+jobs:
+    prepare:
+        name: Prepare Dependencies
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./ozon-product-requester
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: '1.24'
+
+            - name: Cache Go modules
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/go-build
+                      ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-
+
+            - name: Install dependencies
+              run: go mod download
+
+    lint:
+        name: Run Linter
+        needs: prepare
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ozon-product-requester
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: '1.24'
+
+            - name: Cache Go modules (Restore from Prepare)
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/go-build
+                      ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-
+
+            - name: Debug Directory Contents
+              run: ls -la ./ || echo "Directory is empty or incorrect"
+            - name: Run golangci-lint
+              uses: golangci/golangci-lint-action@v6.5.0
+              with:
+                  version: v1.64.6
+                  working-directory: ./ozon-product-requester
+
+
+    test:
+        name: Run Tests
+        needs: prepare
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./ozon-product-requester
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: '1.24'
+
+            - name: Cache Go modules (Restore from Prepare)
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/go-build
+                      ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-
+
+            - name: Run tests
+              run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
