@@ -1,22 +1,25 @@
 package main
 
 import (
-	"log"
-	"ozon-product-requester/internal/infrastructure/http"
-	"ozon-product-requester/internal/infrastructure/http/api/v1/controller"
+    "log"
+    "ozon-product-requester/internal/infrastructure/http"
+    "ozon-product-requester/internal/infrastructure/http/api/v1/controller"
+    "ozon-product-requester/internal/infrastructure/ozon"
 )
 
 func main() {
 
-	app := http.GetApp()
+    app := http.GetApp()
 
-	controller.ProductController(app)
+    ozonClient := ozon.NewOzonClientBuilder().Build()
 
-	err := http.GetApp().Listen(":3000")
+    controller.RegisterController(app, ozonClient)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    err := http.GetApp().Listen(":3000")
 
-	log.Println("Finishing work")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println("Finishing work")
 }
