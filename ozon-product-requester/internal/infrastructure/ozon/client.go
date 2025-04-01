@@ -3,7 +3,6 @@ package ozon
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	product "ozon-product-requester/internal/domain/models"
 	"regexp"
@@ -69,17 +68,36 @@ func (c *ClientImpl) MakeScreenshot(id string) ([]byte, error) {
 func (c *ClientImpl) GetProduct(id string) (*product.Product, error) {
 	var price string
 	var name string
-	if err := chromedp.Run(c.ctx, chromedp.Tasks{
-		chromedp.Navigate("https://ozon.ru/product/" + id),
-		chromedp.WaitReady("body"),
-		chromedp.Text("[data-widget=\"webPrice\"]", &price),
-		chromedp.Text("[data-widget=\"webProductHeading\"]", &name),
-	}); err != nil {
-		log.Fatal(err)
+	err := chromedp.Run(c.ctx, chromedp.Tasks{
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			navCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel()
+			return chromedp.Navigate("https://ozon.ru/product/" + id).Do(navCtx)
+		}),
+
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			waitCtx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+			return chromedp.WaitReady("body").Do(waitCtx)
+		}),
+
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			priceCtx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+			return chromedp.Text("[data-widget=\"webPrice\"]", &price).Do(priceCtx)
+		}),
+
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			nameCtx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+			return chromedp.Text("[data-widget=\"webProductHeading\"]", &name).Do(nameCtx)
+		}),
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(price)
 	price = strings.ReplaceAll(price, " ", "")
 
 	matches := regexp.MustCompile(`\d+(?:\d+)+?`).FindAllStringSubmatch(price, -1)

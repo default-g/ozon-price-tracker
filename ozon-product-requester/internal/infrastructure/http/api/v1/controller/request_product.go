@@ -1,19 +1,18 @@
 package controller
 
 import (
-    "encoding/json"
     "github.com/gofiber/fiber/v3"
+    "ozon-product-requester/internal/application/interactors"
     "ozon-product-requester/internal/infrastructure/http/api/v1/dto"
-    "ozon-product-requester/internal/infrastructure/ozon"
     "strings"
 )
 
 type ProductController struct {
-    ozonClient ozon.Client
+    requestProductInteractor *interactors.RequestProductInteractor
 }
 
-func RegisterController(app fiber.Router, ozonClient ozon.Client) *ProductController {
-    controller := &ProductController{ozonClient}
+func RegisterController(app fiber.Router, getProductInteractor *interactors.RequestProductInteractor) *ProductController {
+    controller := &ProductController{getProductInteractor}
 
     app.Get("/api/v1", controller.getProduct)
 
@@ -28,7 +27,7 @@ func (pc *ProductController) getProduct(ctx fiber.Ctx) error {
         return fiber.ErrBadRequest
     }
 
-    product, err := pc.ozonClient.GetProduct(id)
+    product, err := pc.requestProductInteractor.Call(id)
 
     if err != nil {
         return err
@@ -47,10 +46,5 @@ func (pc *ProductController) getProduct(ctx fiber.Ctx) error {
         },
     }
 
-    marshal, err := json.Marshal(productDto)
-    if err != nil {
-        return err
-    }
-
-    return ctx.Send(marshal)
+    return ctx.JSON(productDto)
 }
